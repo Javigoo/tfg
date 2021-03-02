@@ -8,7 +8,6 @@ import requests
 URL = 'http://localhost:8080/api/v1.3/'
 LAST_REPORT_FILE = 'reports.json'
 
-
 def get_last_report(name):
     """Get last report time for given name (container or machine)."""
     with open(LAST_REPORT_FILE) as fh:
@@ -39,6 +38,24 @@ def nanosecs(ts):
     ) + float("0." + decimal)
     return seconds * 10 ** 9
 
+"""
+container_network_receive_packets_total	            Counter	Cumulative count of packets received			
+container_network_transmit_packets_total	        Counter	Cumulative count of packets transmitted			
+
+container_network_receive_bytes_total	            Counter	Cumulative count of bytes received
+container_network_transmit_bytes_total	            Counter	Cumulative count of bytes transmitted			
+
+container_network_receive_packets_dropped_total	    Counter	Cumulative count of packets dropped while receiving
+container_network_transmit_packets_dropped_total	Counter	Cumulative count of packets dropped while transmitting			
+
+container_network_receive_errors_total	            Counter	Cumulative count of errors encountered while receiving			
+container_network_transmit_errors_total	            Counter	Cumulative count of errors encountered while transmitting
+
+container_network_tcp_usage_total	    	        tcp connection usage statistic for container			
+container_network_tcp6_usage_total		            tcp6 connection usage statistic for container			
+container_network_udp_usage_total		            udp connection usage statistic for container			
+container_network_udp6_usage_total		            udp6 connection usage statistic for container			
+"""
 
 def get_stats(entry):
     return \

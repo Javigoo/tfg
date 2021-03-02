@@ -1,4 +1,4 @@
-rsa*
+ssh*
 *.ovpn
 **/*.mdb
 misc*

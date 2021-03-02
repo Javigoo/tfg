@@ -51,3 +51,5 @@ if [ ! -z "$registry" ]; then
 fi
 log "Processed $((succ + fail)) images. $succ successes, $fail failures."
 log "Exiting"
+
+cd "$ROOT_DIR"
