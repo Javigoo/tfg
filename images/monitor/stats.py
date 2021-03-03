@@ -83,7 +83,8 @@ def get_usage(part):
     return {
         "time": time,
         "cpu": cpu_percent,
-        "memory": mem_percent
+        "memory": mem_percent,
+        "network": 0
     }
 
 
