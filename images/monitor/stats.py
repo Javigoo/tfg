@@ -38,31 +38,40 @@ def nanosecs(ts):
     ) + float("0." + decimal)
     return seconds * 10 ** 9
 
-"""
-container_network_receive_packets_total	            Counter	Cumulative count of packets received			
-container_network_transmit_packets_total	        Counter	Cumulative count of packets transmitted			
+def secs(ts):
+    """Convert timestamp to its equivalent in seconds"""
+    whole, decimal = ts.split(".")
+    decimal = decimal[:-1]  # Remove final Z
+    seconds = timegm(
+        datetime.strptime(whole, "%Y-%m-%dT%H:%M:%S").timetuple()
+    ) + float("0." + decimal)
+    return seconds
 
-container_network_receive_bytes_total	            Counter	Cumulative count of bytes received
-container_network_transmit_bytes_total	            Counter	Cumulative count of bytes transmitted			
-
-container_network_receive_packets_dropped_total	    Counter	Cumulative count of packets dropped while receiving
-container_network_transmit_packets_dropped_total	Counter	Cumulative count of packets dropped while transmitting			
-
-container_network_receive_errors_total	            Counter	Cumulative count of errors encountered while receiving			
-container_network_transmit_errors_total	            Counter	Cumulative count of errors encountered while transmitting
-
-container_network_tcp_usage_total	    	        tcp connection usage statistic for container			
-container_network_tcp6_usage_total		            tcp6 connection usage statistic for container			
-container_network_udp_usage_total		            udp connection usage statistic for container			
-container_network_udp6_usage_total		            udp6 connection usage statistic for container			
-"""
 
 def get_stats(entry):
     return \
         entry['timestamp'],\
         entry['cpu']['usage']['total'],\
         len(entry['cpu']['usage']['per_cpu_usage']),\
-        entry['memory']['usage']
+        entry['memory']['usage'],\
+        entry['network']['rx_bytes'],\
+        entry['network']['tx_bytes'],\
+        entry['network']['name']
+
+
+def get_network_percent(rx, tx, prev_rx, prev_tx, network_device, time, prev_time):
+    try:
+        cjson = requests.get(URL + "machine").json()
+        for device in cjson['network_devices']:
+            if device['name'] == network_device:
+                speed = device['speed']
+            
+        network_percent = float((max(rx - prev_rx, tx - prev_tx) / (secs(time) - secs(prev_time)) ) * 8) / float(speed * (10**6)) * 100
+
+        return network_percent
+
+    except requests.ConnectionError:
+        return None
 
 
 def get_usage(part):
@@ -70,8 +79,8 @@ def get_usage(part):
     if len(part_stats) < 2:
         return None
     # Extract relevant data
-    time, cpu, num_cores, mem = get_stats(part_stats[-1])
-    prev_time, prev_cpu, _, _ = get_stats(part_stats[-2])
+    time, cpu, num_cores, mem, rx, tx, network_device = get_stats(part_stats[-1])
+    prev_time, prev_cpu, _, _, prev_rx, prev_tx, _ = get_stats(part_stats[-2])
 
     # Calculate CPU and memory usage
     if time == prev_time:
@@ -79,12 +88,14 @@ def get_usage(part):
 
     cpu_usage = (cpu - prev_cpu) / (nanosecs(time) - nanosecs(prev_time))
     cpu_percent = float(cpu_usage) / float(num_cores) * 100  # Over number of host cores
-    mem_percent = float(mem) / float(part['spec']['memory']['limit']) * 100  # Over container's reservation
+    mem_percent = float(mem) / float(part['spec']['memory']['limit']) * 100  # Over container's reservation    
+    network_percent = get_network_percent(rx, tx, prev_rx, prev_tx, network_device, time, prev_time) # Over network device speed
+
     return {
         "time": time,
         "cpu": cpu_percent,
         "memory": mem_percent,
-        "network": 0
+        "network": network_percent
     }
 
 
