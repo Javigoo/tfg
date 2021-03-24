@@ -50,7 +50,6 @@ spec:
       - name: monitor-claim0
         hostPath:
           path: /etc/hostname
-        imagePullPolicy: "Always"
       - name: cadvisor-claim0
         hostPath:
           path: /

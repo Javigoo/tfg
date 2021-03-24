@@ -38,7 +38,6 @@ def nanosecs(ts):
     ) + float("0." + decimal)
     return seconds * 10 ** 9
 
-
 def get_stats(entry):
     return \
         entry['timestamp'],\
@@ -48,21 +47,11 @@ def get_stats(entry):
         entry['network']['rx_bytes'],\
         entry['network']['tx_bytes']
 
+def get_max_rx():
+  return 10 * 10**6 * 8
 
-def get_network_percent(rx, tx, prev_rx, prev_tx, network_device, time, prev_time):
-    try:
-        cjson = requests.get(URL + "machine").json()
-        for device in cjson['network_devices']:
-            if device['name'] == network_device:
-                speed = device['speed']
-            
-        network_percent = float((max(rx - prev_rx, tx - prev_tx) / (secs(time) - secs(prev_time)) ) * 8) / float(speed * (10**6)) * 100
-
-        return network_percent
-
-    except requests.ConnectionError:
-        return None
-
+def get_max_tx():
+  return 10 * 10**6 * 8
 
 def get_usage(part):
     part_stats = part['stats']
@@ -76,11 +65,21 @@ def get_usage(part):
     if time == prev_time:
         return None
 
-    cpu_usage = (cpu - prev_cpu) / (nanosecs(time) - nanosecs(prev_time))
+    data_collection_time_interval_ns = nanosecs(time) - nanosecs(prev_time)
+    data_collection_time_interval_s = data_collection_time_interval_ns / (10**9)
+
+    cpu_usage = (cpu - prev_cpu) / data_collection_time_interval_ns
     cpu_percent = float(cpu_usage) / float(num_cores) * 100  # Over number of host cores
-    mem_percent = float(mem) / float(part['spec']['memory']['limit']) * 100  # Over container's reservation
-    cpu_usage = (cpu - prev_cpu) / (nanosecs(time) - nanosecs(prev_time))    
-    network_percent = get_network_percent(rx, tx, prev_rx, prev_tx) # Over network device speed
+
+    mem_percent = float(mem) / float(part['spec']['memory']['limit']) * 100  # Over container's reservation  
+  
+    network_usage_rx = (rx - prev_rx) / data_collection_time_interval_s * 8
+    network_usage_tx = (tx - prev_tx) / data_collection_time_interval_s * 8
+
+    network_percent_rx = (float(network_usage_rx) / get_max_rx()) * 100 #download
+    network_percent_tx = (float(network_usage_tx) / get_max_tx()) * 100 #upload
+
+    network_percent = max(network_percent_rx, network_percent_tx)
 
     return {
         "time": time,
@@ -88,7 +87,6 @@ def get_usage(part):
         "memory": mem_percent,
         "network": network_percent
     }
-
 
 def get_machine_usage(hostname):
     try:
