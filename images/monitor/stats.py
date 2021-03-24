@@ -38,15 +38,6 @@ def nanosecs(ts):
     ) + float("0." + decimal)
     return seconds * 10 ** 9
 
-def secs(ts):
-    """Convert timestamp to its equivalent in seconds"""
-    whole, decimal = ts.split(".")
-    decimal = decimal[:-1]  # Remove final Z
-    seconds = timegm(
-        datetime.strptime(whole, "%Y-%m-%dT%H:%M:%S").timetuple()
-    ) + float("0." + decimal)
-    return seconds
-
 
 def get_stats(entry):
     return \
@@ -55,8 +46,7 @@ def get_stats(entry):
         len(entry['cpu']['usage']['per_cpu_usage']),\
         entry['memory']['usage'],\
         entry['network']['rx_bytes'],\
-        entry['network']['tx_bytes'],\
-        entry['network']['name']
+        entry['network']['tx_bytes']
 
 
 def get_network_percent(rx, tx, prev_rx, prev_tx, network_device, time, prev_time):
@@ -79,8 +69,8 @@ def get_usage(part):
     if len(part_stats) < 2:
         return None
     # Extract relevant data
-    time, cpu, num_cores, mem, rx, tx, network_device = get_stats(part_stats[-1])
-    prev_time, prev_cpu, _, _, prev_rx, prev_tx, _ = get_stats(part_stats[-2])
+    time, cpu, num_cores, mem, rx, tx = get_stats(part_stats[-1])
+    prev_time, prev_cpu, _, _, prev_rx, prev_tx = get_stats(part_stats[-2])
 
     # Calculate CPU and memory usage
     if time == prev_time:
@@ -88,8 +78,9 @@ def get_usage(part):
 
     cpu_usage = (cpu - prev_cpu) / (nanosecs(time) - nanosecs(prev_time))
     cpu_percent = float(cpu_usage) / float(num_cores) * 100  # Over number of host cores
-    mem_percent = float(mem) / float(part['spec']['memory']['limit']) * 100  # Over container's reservation    
-    network_percent = get_network_percent(rx, tx, prev_rx, prev_tx, network_device, time, prev_time) # Over network device speed
+    mem_percent = float(mem) / float(part['spec']['memory']['limit']) * 100  # Over container's reservation
+    cpu_usage = (cpu - prev_cpu) / (nanosecs(time) - nanosecs(prev_time))    
+    network_percent = get_network_percent(rx, tx, prev_rx, prev_tx) # Over network device speed
 
     return {
         "time": time,

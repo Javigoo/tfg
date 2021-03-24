@@ -40,6 +40,7 @@ spec:
           readOnly: true
       - image: 192.168.101.76:5000/monitor
         name: monitor
+        imagePullPolicy: "Always"
         resources: {}
         volumeMounts:
         - mountPath: /hostname
@@ -49,6 +50,7 @@ spec:
       - name: monitor-claim0
         hostPath:
           path: /etc/hostname
+        imagePullPolicy: "Always"
       - name: cadvisor-claim0
         hostPath:
           path: /
@@ -61,3 +63,4 @@ spec:
       - name: cadvisor-claim3
         hostPath:
           path: /var/lib/docker
+

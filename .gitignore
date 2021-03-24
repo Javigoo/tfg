@@ -9,3 +9,4 @@ misc*
 **/__pycache__
 **/.idea
 **/kubeconfig
+.DS_Store
