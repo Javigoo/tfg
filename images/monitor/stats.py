@@ -8,6 +8,8 @@ import requests
 URL = 'http://localhost:8080/api/v1.3/'
 LAST_REPORT_FILE = 'reports.json'
 
+URL_CONFIG = 'http://mongoapi:8000/query/configuration/'
+
 def get_last_report(name):
     """Get last report time for given name (container or machine)."""
     with open(LAST_REPORT_FILE) as fh:
@@ -48,10 +50,23 @@ def get_stats(entry):
         entry['network']['tx_bytes']
 
 def get_max_rx():
-  return 10 * 10**6 * 8
+    try:
+        cjson = requests.get(URL_CONFIG).json()
+        print(cjson)
+    except requests.ConnectionError:
+        return None
+
+    return cjson["scaling"]["max_network_rx"]
 
 def get_max_tx():
-  return 10 * 10**6 * 8
+    #return 10 * 10**6 * 8
+    try:
+        cjson = requests.get(URL_CONFIG).json()
+        print(cjson)
+    except requests.ConnectionError:
+        return None
+
+    return cjson["scaling"]["max_network_tx"]
 
 def get_usage(part):
     part_stats = part['stats']

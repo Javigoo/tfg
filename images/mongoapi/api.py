@@ -35,7 +35,8 @@ class Test:
     """Endpoint for checking that service is up."""
 
     def on_get(self, req, resp):
-        return
+        resp.status = falcon.HTTP_404
+        return "A"
 
 
 class Query:

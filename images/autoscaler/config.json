@@ -5,7 +5,9 @@
     "max_load_nowait": 90,
     "wait_seconds": 10,
     "tolerance": 5,
-    "grace_period": 20
+    "grace_period": 20,
+    "max_network_tx": 1,
+    "max_network_rx": 1
   },
   "update_seconds": 5,
   "exclude": ["monitor"],
