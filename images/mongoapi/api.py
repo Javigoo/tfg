@@ -36,7 +36,8 @@ class Test:
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_404
-        return "A"
+        resp.body = "Test response"
+        return "Test response"
 
 
 class Query:
@@ -109,16 +110,16 @@ class Query:
             resp.body = 'Request body required'
             return
 
-        if 'collection' not in req.media or 'data' not in req.media:
+        """
+        if 'collectionUp' not in req.media or 'data' not in req.media:
             resp.status = falcon.HTTP_400
             resp.body = 'Request body must contain keys "collection" and "data"'
             return
-
-        col, data = req.media['collection'], req.media['data']
-
-        print("col: ",col)
-        print("data: ", data)
+        """
         
+        resp.body = json.dumps(req.media)
+        return
+
         #INTERNAL_CLIENT.ehqos[col].insert_many(data)
 
 class Routine:
