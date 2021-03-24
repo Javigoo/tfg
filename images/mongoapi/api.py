@@ -102,6 +102,24 @@ class Query:
         col, data = req.media['collection'], req.media['data']
         INTERNAL_CLIENT.ehqos[col].insert_many(data)
 
+    def on_put_all(self, req, resp):
+        """Update configuration file"""
+        if not req.media:
+            resp.status = falcon.HTTP_400
+            resp.body = 'Request body required'
+            return
+
+        if 'collection' not in req.media or 'data' not in req.media:
+            resp.status = falcon.HTTP_400
+            resp.body = 'Request body must contain keys "collection" and "data"'
+            return
+
+        col, data = req.media['collection'], req.media['data']
+
+        print("col: ",col)
+        print("data: ", data)
+        
+        #INTERNAL_CLIENT.ehqos[col].insert_many(data)
 
 class Routine:
     def on_post_create(self, req, resp):
