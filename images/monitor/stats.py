@@ -9,6 +9,8 @@ URL = 'http://localhost:8080/api/v1.3/'
 LAST_REPORT_FILE = 'reports.json'
 
 URL_CONFIG = 'http://mongoapi:8000/query/configuration'
+CONFIG_FILE = 'config.json'
+
 
 def get_last_report(name):
     """Get last report time for given name (container or machine)."""
@@ -50,22 +52,12 @@ def get_stats(entry):
         entry['network']['tx_bytes']
 
 def get_max_rx():
-    try:
-        cjson = requests.get(URL_CONFIG).json()
-    except requests.ConnectionError:
-        return None
-
-    return cjson[0]['scaling']['max_network_rx']
+    with open(CONFIG_FILE, 'r') as f:
+            return json.load(f)['scaling']['max_network_rx']
 
 def get_max_tx():
-    #return 10 * 10**6 * 8
-    try:
-        cjson = requests.get(URL_CONFIG).json()
-        print(cjson)
-    except requests.ConnectionError:
-        return None
-
-    return cjson[0]['scaling']['max_network_tx']
+    with open(CONFIG_FILE, 'r') as f:
+        return json.load(f)['scaling']['max_network_tx']
 
 def get_usage(part):
     part_stats = part['stats']
@@ -158,7 +150,15 @@ def get_hostname():
     return hostname
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":        
+
+    with open(CONFIG_FILE, 'w') as f:
+        try:
+            cjson = requests.get(URL_CONFIG).json()
+            f.write(json.dumps(cjson[0]))
+        except requests.ConnectionError:
+            exit
+            
     host_performance = get_machine_usage(get_hostname())
     if host_performance:
         requests.post("http://mongoapi:8000/performance", data=json.dumps(host_performance))
