@@ -35,9 +35,7 @@ class Test:
     """Endpoint for checking that service is up."""
 
     def on_get(self, req, resp):
-        resp.status = falcon.HTTP_404
-        resp.body = "Test response"
-        return "Test response"
+        resp.body = json.dumps(INTERNAL_CLIENT.ehqos.list_collection_names())
 
 
 class Query:

@@ -6,6 +6,6 @@ if __name__ == "__main__":
     tx = s.upload()
 
     with open("bandwidth.txt", 'w') as f:
-        f.write("rx: {}, tx: {}\n", rx, tx)
+        f.write("rx: "+str(rx)+", tx: "+str(tx)+"\n")
 
     #db.configuration.update({}, {$set: {"scaling.max_network_tx":0, "scaling.max_network_rx":0} })
