@@ -18,18 +18,15 @@ def valid_conf(reference, conf_obj):
             return False
     return True
 
-
+# TODO: - Llamada a mongoapi para leer el archivo de configuración 
+"""
 with open("config.json") as fh:
     conf = json.load(fh)
     if not valid_conf(JSON_CONF_STRUCTURE, conf):
         sys.exit(1)
+"""
 
-
-INTERNAL_CLIENT = pymongo.MongoClient(
-    "mongodb://%s:%s@internaldb:27017" %
-    (conf['internal']['mongo_user'], conf['internal']['mongo_pass'])
-)
-
+INTERNAL_CLIENT = pymongo.MongoClient('mongodb://admin:toor@internaldb:27017')
 
 class Test:
     """Endpoint for checking that service is up."""
