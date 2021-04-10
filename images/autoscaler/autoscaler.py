@@ -17,6 +17,9 @@ KUBE_CLIENT = client.AppsV1Api()
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 received = False
 
+CONFIG_FILE = 'config.json'
+URL_CONFIG = 'http://mongoapi:8000/query/configuration'
+
 
 def from_json(class_to_instantiate, json_obj):
     c = class_to_instantiate()
@@ -39,7 +42,9 @@ class Config:
                 max_load_nowait=0.9,
                 wait_seconds=60,
                 tolerance=5,
-                grace=30
+                grace=30,
+                max_network_tx=1,
+                max_network_rx=1
         ):
             self.min_load = min_load
             self.max_load = max_load
@@ -47,6 +52,8 @@ class Config:
             self.wait_seconds = wait_seconds
             self.tolerance = tolerance
             self.grace_period = grace
+            self.max_network_tx = max_network_tx
+            self.max_network_rx = max_network_rx
 
     def __init__(
             self,
@@ -175,7 +182,7 @@ def monitor_containers(config, wpipe):
         if not received:
             pause()
 
-
+# Algo similar para obtener la etiqueta: CPU, MEMORY o NETWORK
 def get_desired_replicas(deployment):
     dep_data = KUBE_CLIENT.read_namespaced_deployment(deployment, 'default')
     return int(dep_data.metadata.labels['io.kubernetes.replicas']) \
@@ -247,7 +254,13 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
-        filename = 'config.json'
+        with open(CONFIG_FILE, 'w') as f:
+            try:
+                cjson = requests.get(URL_CONFIG).json()
+                f.write(json.dumps(cjson[0]))
+            except requests.ConnectionError:
+                exit
+        filename = CONFIG_FILE
 
     conf = Config.load(filename)
 

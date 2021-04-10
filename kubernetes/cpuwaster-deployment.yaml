@@ -3,6 +3,7 @@ kind: DaemonSet
 metadata:
   creationTimestamp: null
   labels:
+    #CPU, MEMORY o NETWORK
     io.kompose.service: cpuwaster
   name: cpuwaster
 spec:

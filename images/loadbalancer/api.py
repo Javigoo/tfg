@@ -86,9 +86,10 @@ class Worker:
             logging.debug(entry)
             container = entry['container']
             if container not in performance:
-                performance[container] = {'cpu': 0, 'memory': 0, 'count': 0}
+                performance[container] = {'cpu': 0, 'memory': 0, 'network':0, 'count': 0}
             performance[container]['cpu'] += entry['usage']['cpu']
             performance[container]['memory'] += entry['usage']['memory']
+            performance[container]['network'] += entry['usage']['network']
             performance[container]['count'] += 1
 
         res.close()
@@ -101,12 +102,18 @@ class Worker:
         for perf in performance.values():
             perf['cpu'] /= perf['count']
             perf['memory'] /= perf['count']
+            perf['network'] /= perf['count']
             del perf['count']
 
         # The selection could be better if the QoS knew whether the job is CPU or memory intensive.
         # Currently, selection takes place by averaging CPU and memory load and taking the lowest.
         # Thus, it is assumed that CPU and memory have the same weight in the selection.
-        selected_container = min(performance.items(), key=lambda tup: tup[1]['cpu'] + tup[1]['memory'] / 2)[0]
+
+        # Todo: 
+        #       - Ver la informacion que se le pasa al worker
+        #       - Añadirle etiqueta CPU, MEMORY o NETWORK intensive
+
+        selected_container = min(performance.items(), key=lambda tup: tup[1]['cpu'] + tup[1]['memory'] + tup[1]['network'] / 3)[0]
         resp.body = json.dumps(list(filter(lambda pod: pod['container'] == selected_container, pods))[0])
 
 
