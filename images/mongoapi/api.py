@@ -34,7 +34,7 @@ INTERNAL_CLIENT = pymongo.MongoClient(
 class Test:
     """Endpoint for checking that service is up."""
 
-    def on_get(self, req, resp):
+    def on_get_all(self, req, resp):
         resp.body = json.dumps(INTERNAL_CLIENT.ehqos.list_collection_names())
 
 
