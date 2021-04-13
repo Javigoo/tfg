@@ -30,8 +30,8 @@ INTERNAL_CLIENT = pymongo.MongoClient('mongodb://admin:toor@internaldb:27017')
 
 class Test:
     """Endpoint for checking that service is up."""
-
-    def on_get_all(self, req, resp):
+    @staticmethod
+    def on_get_all(self, req, respp):
         resp.body = json.dumps(INTERNAL_CLIENT.ehqos.list_collection_names())
 
 
@@ -105,17 +105,15 @@ class Query:
             resp.body = 'Request body required'
             return
 
-        """
-        if 'collectionUp' not in req.media or 'data' not in req.media:
+        if 'tx' not in req.media or 'rx' not in req.media:
             resp.status = falcon.HTTP_400
-            resp.body = 'Request body must contain keys "collection" and "data"'
+            resp.body = 'Request body must contain keys "tx" and "rx"'
             return
-        """
-        
+
+        INTERNAL_CLIENT.ehqos.configuration.update({}, {"$set": {"scaling.max_network_tx":req.media["tx"], "scaling.max_network_rx":req.media["rx"]} })
+	        
         resp.body = json.dumps(req.media)
         return
-
-        #INTERNAL_CLIENT.ehqos[col].insert_many(data)
 
 class Routine:
     def on_post_create(self, req, resp):
@@ -166,7 +164,7 @@ queryResource = Query()
 routineResource = Routine()
 performanceResource = Performance()
 deleteResource = Delete()
-api.add_route('/test', testResource)
+api.add_route('/test', testResource, suffix="all")
 api.add_route('/query/{collection}', queryResource)
 api.add_route('/query', queryResource, suffix="all")
 api.add_route('/routine/new', routineResource, suffix="create")

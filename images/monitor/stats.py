@@ -53,7 +53,7 @@ def get_stats(entry):
 
 def get_max_rx():
     with open(CONFIG_FILE, 'r') as f:
-            return json.load(f)['scaling']['max_network_rx']
+        return json.load(f)['scaling']['max_network_rx']
 
 def get_max_tx():
     with open(CONFIG_FILE, 'r') as f:
