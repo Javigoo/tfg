@@ -53,11 +53,19 @@ def get_stats(entry):
 
 def get_max_rx():
     with open(CONFIG_FILE, 'r') as f:
-        return json.load(f)['scaling']['max_network_rx']
+        data = json.load(f)['scaling']['max_network_rx']
+        if data is not None:
+            return data
+        else:
+            return 0
 
 def get_max_tx():
     with open(CONFIG_FILE, 'r') as f:
-        return json.load(f)['scaling']['max_network_tx']
+        data = json.load(f)['scaling']['max_network_tx']
+        if data is not None:
+            return data
+        else:
+            return 0
 
 def get_usage(part):
     part_stats = part['stats']
