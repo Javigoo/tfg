@@ -19,7 +19,7 @@ if __name__ == "__main__":
         logging.error(traceback.format_exc())
 
         with open("log", 'w') as f:
-            f.write(e)
+            f.write(str(e))
         
 
     

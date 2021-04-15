@@ -55,9 +55,16 @@ class Test:
         return
 
 
+def get_metric_percentages():
+    pass
+
+
 class Worker:
     def on_get(self, req, resp):
         pods = req.media
+
+        print(pods)
+
         if not pods:
             resp.status = falcon.HTTP_400
             resp.body = 'Body should contain pod objects'
@@ -112,6 +119,8 @@ class Worker:
         # Todo: 
         #       - Ver la informacion que se le pasa al worker
         #       - Añadirle etiqueta CPU, MEMORY o NETWORK intensive
+        
+        #cpu_percent, memory_percent, network_percent = get_metric_percentages()
 
         selected_container = min(performance.items(), key=lambda tup: tup[1]['cpu'] + tup[1]['memory'] + tup[1]['network'] / 3)[0]
         resp.body = json.dumps(list(filter(lambda pod: pod['container'] == selected_container, pods))[0])

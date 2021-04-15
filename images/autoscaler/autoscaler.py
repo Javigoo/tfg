@@ -43,8 +43,8 @@ class Config:
                 wait_seconds=60,
                 tolerance=5,
                 grace=30,
-                max_network_tx=1,
-                max_network_rx=1
+                max_network_tx=50000000,
+                max_network_rx=50000000
         ):
             self.min_load = min_load
             self.max_load = max_load
@@ -109,7 +109,7 @@ def monitor_containers(config, wpipe):
     stepback_time = timedelta(seconds=config.update_seconds)
     plugin_manager = PluginManager(config)
     while True:
-        alarm(config.update_seconds)
+        alarm(int(config.update_seconds))
         received = False
         res = None
         try:
