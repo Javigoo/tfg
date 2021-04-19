@@ -82,9 +82,8 @@ def get_metric_percentages(pods):
 class Worker:
     def on_get(self, req, resp):
         pods = req.media
-
-        with open("test.log", 'w') as f:
-            f.write(str(pods))
+        logging.debug("Req %s" % str(req))
+        logging.debug("Req.media (pods) %s" % str(pods))
 
         if not pods:
             resp.status = falcon.HTTP_400
@@ -108,10 +107,12 @@ class Worker:
             res.close()
             return
 
+        logging.debug("Received response data %s" % res.body)
+        
         # Aggregate performances for each container
         performance = {}
         for entry in JsonStreamIterator(res):
-            logging.debug(entry)
+            logging.debug("Entry: %s" % entry)
             container = entry['container']
             if container not in performance:
                 performance[container] = {'cpu': 0, 'memory': 0, 'network':0, 'count': 0}
@@ -121,11 +122,14 @@ class Worker:
             performance[container]['count'] += 1
 
         res.close()
+
         # If there is no data, return first pod
         if not performance:
+            logging.debug("Returning first pod (no data)")
             resp.body = json.dumps(pods[0])
             return
 
+        logging.debug("performance.values(): %s" % performance.values())
         # Average CPU and memory load
         for perf in performance.values():
             perf['cpu'] /= perf['count']
@@ -134,13 +138,16 @@ class Worker:
             del perf['count']
         
         cpu_percent, memory_percent, network_percent = get_metric_percentages(pods)
+        logging.debug("cpu_percent: %s\nmemory_percent: %s\nnetwork_percent: %s" % cpu_percent, memory_percent, network_percent)
         with open("labels.log", 'w') as f:
             f.write(str(cpu_percent) + str(memory_percent) + str(network_percent))
 
         cpu_percent, memory_percent, network_percent = 1, 1, 1
         selected_container = min(performance.items(), key=lambda tup: tup[1]['cpu']*cpu_percent + tup[1]['memory']*memory_percent + tup[1]['network']*network_percent / 3)[0]
-        resp.body = json.dumps(list(filter(lambda pod: pod['container'] == selected_container, pods))[0])
+        logging.debug("Selected container: %s" % selected_container)
 
+        resp.body = json.dumps(list(filter(lambda pod: pod['container'] == selected_container, pods))[0])
+        logging.debug("resp.body: %s" % resp.body)
 
 class SystemLoad:
     def on_get(self, req, resp):
