@@ -23,7 +23,7 @@ class LoadTracker:
                 return 0
 
         # If container is over immediate scale threshold, scale and add to grace
-        if max(usage['cpu'], usage['memory']) > self.config.max_load_nowait:
+        if max(usage['cpu'], usage['memory'], usage['network']) > self.config.max_load_nowait:
             if container in self.overloaded:
                 del self.overloaded[container]
                 self.grace[container] = fromisoformat(usage['time']) + \
@@ -50,7 +50,7 @@ class LoadTracker:
 
     def _load_check(self, load_object, criteria, container, usage):
         # If usage means exceptional load...
-        if criteria(max(usage['cpu'], usage['memory'])):
+        if criteria(max(usage['cpu'], usage['memory'], usage['network'])):
             # If not in object, add
             if container not in load_object:
                 load_object[container] = LoadTracker._new_load_object(usage['time'])

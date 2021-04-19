@@ -6,6 +6,7 @@ import falcon
 import requests
 from kubernetes import client, config
 
+
 logging.basicConfig(level=logging.DEBUG)
 
 config.load_incluster_config()
@@ -55,15 +56,35 @@ class Test:
         return
 
 
-def get_metric_percentages():
-    pass
+def get_metric_percentages(pods):
+    metrics = {"cpu": 0, "memory": 0, "network": 0}
+    labels = pods["labels"]
 
+    total = 0
+    no_value = 0
+    for metric in metrics:
+        if metric in labels:
+            metrics[metric], total = int(labels[metric]) / 100
+        else:
+            no_value += 1
 
+    if total == 1:
+        return metric["cpu"], metric["memory"], metric["network"]
+    elif total == 0:
+        return 1, 1, 1
+    else:
+        for metric in metrics:
+            if metrics[metric] == 0:
+                metrics[metric] = (1-total)/no_value
+        return metric["cpu"], metric["memory"], metric["network"]
+
+        
 class Worker:
     def on_get(self, req, resp):
         pods = req.media
 
-        print(pods)
+        with open("test.log", 'w') as f:
+            f.write(str(pods))
 
         if not pods:
             resp.status = falcon.HTTP_400
@@ -111,18 +132,13 @@ class Worker:
             perf['memory'] /= perf['count']
             perf['network'] /= perf['count']
             del perf['count']
-
-        # The selection could be better if the QoS knew whether the job is CPU or memory intensive.
-        # Currently, selection takes place by averaging CPU and memory load and taking the lowest.
-        # Thus, it is assumed that CPU and memory have the same weight in the selection.
-
-        # Todo: 
-        #       - Ver la informacion que se le pasa al worker
-        #       - Añadirle etiqueta CPU, MEMORY o NETWORK intensive
         
-        #cpu_percent, memory_percent, network_percent = get_metric_percentages()
+        cpu_percent, memory_percent, network_percent = get_metric_percentages(pods)
+        with open("labels.log", 'w') as f:
+            f.write(str(cpu_percent) + str(memory_percent) + str(network_percent))
 
-        selected_container = min(performance.items(), key=lambda tup: tup[1]['cpu'] + tup[1]['memory'] + tup[1]['network'] / 3)[0]
+        cpu_percent, memory_percent, network_percent = 1, 1, 1
+        selected_container = min(performance.items(), key=lambda tup: tup[1]['cpu']*cpu_percent + tup[1]['memory']*memory_percent + tup[1]['network']*network_percent / 3)[0]
         resp.body = json.dumps(list(filter(lambda pod: pod['container'] == selected_container, pods))[0])
 
 
