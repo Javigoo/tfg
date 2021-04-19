@@ -24,7 +24,7 @@ for dir in $search; do
   if [ -f "$dir/Dockerfile" ]; then
     log "Found Dockerfile for $dir, building"
     imagename=$(echo "$dir" | awk 'BEGIN{FS="/"}{print $1}')
-    docker build "$dir" -t "$imagename"
+    docker build --no-cache "$dir" -t "$imagename"
     echo ""
 
     if [ "$?" -ne 0 ]; then
