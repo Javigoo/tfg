@@ -106,8 +106,6 @@ class Worker:
             resp.body = json.dumps(pods[0])
             res.close()
             return
-
-        logging.debug("Received response data %s" % res.body)
         
         # Aggregate performances for each container
         performance = {}
