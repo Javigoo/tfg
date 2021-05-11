@@ -1,7 +1,17 @@
 import './App.css';
 import React from 'react';
 
+import { createServer } from "miragejs"
+
+let server = createServer()
+server.get("/api/users", { users: [{ id: 1, name: "Bob" }] })
+
 function App() {
+
+  function showTasks() {
+    console.log("showTasks")
+    return (<p>show Tasks</p>);
+  }
 
   function downloadButton() {
     alert("downloadButton");
@@ -22,6 +32,9 @@ function App() {
           <p>
             Listar tareas y para cada tarea información de la misma en función de su estado (Pending, complete, error, etc) 
           </p>
+
+          {showTasks()}
+          
           <p>
             Botón para descargar resultados (log)
           </p>
