@@ -6,9 +6,6 @@ metadata:
     kompose.version: 1.19.0 (f63a961c)
   creationTimestamp: null
   labels:
-    cpu: 34
-    memory: 33
-    network: 33
     io.kompose.service: producer
   name: producer
 spec:

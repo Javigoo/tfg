@@ -57,6 +57,7 @@ class Test:
 
 
 def get_metric_percentages(pods):
+    logging.debug("pods: %s\n" % pods)
     metrics = {"cpu": 0, "memory": 0, "network": 0}
     labels = pods["labels"]
 
