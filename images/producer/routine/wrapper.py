@@ -45,7 +45,8 @@ with open(LOG) as fh:
 results = {}
 if exists(RES):
     with open(RES) as fh:
-        results = json.load(fh)
+        try:
+            results = json.load(fh)
 
 logging.debug("Saving to database")
 # Save results in database

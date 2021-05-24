@@ -15,22 +15,26 @@ CONFIG_FILE = 'config.json'
 def get_last_report(name):
     """Get last report time for given name (container or machine)."""
     with open(LAST_REPORT_FILE) as fh:
-        j = json.load(fh)
-        if name in j:
-            last = j[name]
-        else:
-            last = ''
+        try:
+            j = json.load(fh)
+            if name in j:
+                last = j[name]
+            else:
+                last = ''
+        except:
+            return ''
     return last
 
 
 def update_reports(tuples):
     """Update report times for (name, time) in the tuple list."""
-    with open(LAST_REPORT_FILE) as fh:
-        reports = json.load(fh)
-    for key, value in tuples:
-        reports[key] = value
-    with open(LAST_REPORT_FILE, 'w') as fh:
-        json.dump(reports, fh)
+    try:
+        with open(LAST_REPORT_FILE) as fh:
+            reports = json.load(fh)
+        for key, value in tuples:
+            reports[key] = value
+        with open(LAST_REPORT_FILE, 'w') as fh:
+            json.dump(reports, fh)
 
 
 def nanosecs(ts):
@@ -51,21 +55,16 @@ def get_stats(entry):
         entry['network']['rx_bytes'],\
         entry['network']['tx_bytes']
 
-def get_max_rx():
+def get_max_bandwidth():
     with open(CONFIG_FILE, 'r') as f:
-        data = json.load(f)['scaling']['max_network_rx']
-        if data is not None:
-            return data
-        else:
-            return 0
-
-def get_max_tx():
-    with open(CONFIG_FILE, 'r') as f:
-        data = json.load(f)['scaling']['max_network_tx']
-        if data is not None:
-            return data
-        else:
-            return 0
+        try:
+            data = json.load(f)
+            if data is not None:
+                return data['scaling']['max_network_rx'], data['scaling']['max_network_tx']
+            else:
+                return 0, 0
+        except:
+            return -1, -1
 
 def get_usage(part):
     part_stats = part['stats']
@@ -90,16 +89,18 @@ def get_usage(part):
     network_usage_rx = (rx - prev_rx) / data_collection_time_interval_s * 8
     network_usage_tx = (tx - prev_tx) / data_collection_time_interval_s * 8
 
-    network_percent_rx = (float(network_usage_rx) / get_max_rx()) * 100 #download
-    network_percent_tx = (float(network_usage_tx) / get_max_tx()) * 100 #upload
+    max_rx, max_tx = get_max_bandwidth()
+    network_percent_rx = (float(network_usage_rx) / max_rx) * 100 #download
+    network_percent_tx = (float(network_usage_tx) / max_tx) * 100 #upload
 
     network_percent = max(network_percent_rx, network_percent_tx)
-
+    print("(rx,tx) network_percent: "+str(network_percent_rx)+", "+str(network_percent_tx)+" - "+str(rx)+", "+str(tx))
     return {
         "time": time,
         "cpu": cpu_percent,
         "memory": mem_percent,
-        "network": network_percent
+        "network": network_percent,
+        "debug": "(rx,tx) network_percent: "+str(network_percent_rx)+", "+str(network_percent_tx)+" - "+str(rx)+", "+str(tx)
     }
 
 def get_machine_usage(hostname):

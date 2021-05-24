@@ -13,12 +13,17 @@ const URL_GATEWAY = 'http://192.168.101.70:5000/'
 
 // Fake backend
 let server = createServer()
-server.get(URL_GATEWAY + "mongo/query/tasks", [{'name':'cpu-waster', 'status': 'PENDING', 'issuer': 'Yes', 'start_time': '12/05/2021'}, {'name':'network-stresser', 'status': 'COMPLETE', 'issuer': 'No', 'start_time': '10/03/2021'}, {'name':'mongofill', 'status': 'ERROR', 'issuer': 'Yes', 'start_time': '11/01/2021'}])
+server.get(URL_GATEWAY + "mongo/query/tasks", [
+  {'name':'cpu-waster', 'status': 'PENDING', 'issuer': 'Yes', 'start_time': '12/05/2021'}, 
+  {'name':'network-stresser', 'status': 'COMPLETE', 'issuer': 'No', 'start_time': '10/03/2021'}, 
+  {'name':'mongofill', 'status': 'ERROR', 'issuer': 'Yes', 'start_time': '11/01/2021'}, 
+  {"name": "mongoget.py", "status": "RUNNING", "issuer": "?", "start_time": "2021-05-14T03:40:52.681564", "id": "609df14433da60154b4364c1"},
+  {"name": "mongoget.py", "status": "FAILURE", "issuer": "?", "start_time": "2021-05-17T17:04:14.750316", "end_time": "2021-05-17T17:29:31.724943", "logs": ["Traceback (most recent call last):", "File \"/worker.py\", line 7, in <module>", "fh.write(json.dumps(client.test.random.find()[0]))", "File \"/usr/local/lib/python3.7/site-packages/pymongo/cursor.py\", line 616, in __getitem__", "raise IndexError(\"no such item for Cursor instance\")", "IndexError: no such item for Cursor instance"], "results": {}, "id": "60a2a20ed92e2ad925f30cd5"}
+])
 server.post(URL_GATEWAY + "routine")
 server.delete("delete")
 
 function App() {
-  var tasks = []
 
   function Login() {
     const { isLoading } = useAuth0();
@@ -43,7 +48,14 @@ function App() {
     function renderTasks() {
       const tasksList = [];
       for(let i = 0; i < items.length; i++) {
-        tasksList.push(<tr><td>{items[i].name}</td><td>{items[i].status}</td><td>{items[i].issuer}</td><td>{items[i].start_time}</td></tr>);
+        tasksList.push(
+          <tr>
+            <td>{items[i].name}</td>
+            <td>{items[i].status}</td>
+            <td>{items[i].start_time}</td>
+            <button onClick={() => DownloadTaskLogs(items[i])}>Download logs</button>
+            <button onClick={() => DeleteTasks(items[i])}>Delete task</button>
+          </tr>);
       }
 
       return tasksList;
@@ -70,14 +82,12 @@ function App() {
     } else if (!isLoaded) {
       return <div>  Loading ... </div>;
     } else {
-      tasks = items;
       return(
         <table className="center">
           <tbody>
             <tr>
               <th>Name</th>
               <th>Status</th>
-              <th>IsUser</th>
               <th>Start Time</th>
             </tr>
             {renderTasks()}
@@ -87,8 +97,8 @@ function App() {
     }
   }
 
-  function DownloadTaskLogs(){
-     
+  function DownloadTaskLogs(task){
+    
     function download(content, fileName, contentType) {
       const a = document.createElement("a");
       const file = new Blob([content], { type: contentType });
@@ -97,7 +107,7 @@ function App() {
       a.click();
     }
      
-    download(JSON.stringify(tasks), "task-logs.txt", "text/plain");
+    download(JSON.stringify(task), task.name+"-logs.txt", "text/plain");
   
   }
 
@@ -149,41 +159,8 @@ function App() {
     );
   }
 
-  function DeleteTasks() {
-    const [task, setTask] = useState(null);
-    
-    function renderTasks() {
-      const tasksList = [];
-      for(let i = 0; i < tasks.length; i++) {
-        tasksList.push(<option value={tasks[i].name}>{tasks[i].name}</option>);
-      }
-
-      return tasksList;
-    }
-
-    function handleChange(event) {
-      setTask(event.target.value);
-    }
-  
-    function handleSubmit(event) {
-      fetch('delete', { method: 'DELETE' });
-      alert('Task ' + task + ' has been deleted');
-      event.preventDefault();
-    }
-
-    return (
-      <form onSubmit={handleSubmit}>
-        Select the task you want to delete:
-        <br></br>
-        <label>
-          <br></br>
-          <select value={task} onChange={handleChange}>
-            {renderTasks()}
-          </select>
-        </label>
-        <input type="submit" value="Submit" />
-      </form>
-    )
+  function DeleteTasks(task) {
+      alert('Task ' + task.name + ' has been deleted');
   }
 
   return (
@@ -197,18 +174,11 @@ function App() {
       <div className="ListTasks">
         <h1>List Tasks</h1>
           {ShowTasks()}
-          <br></br>
-          <button onClick={DownloadTaskLogs}>Download</button>
       </div>
 
       <div className="SubmitTasks">
         <h1>Submit Tasks</h1>
           {SubmitTasks()} 
-      </div>
-
-      <div className="DeleteTasks">
-        <h1>Delete Tasks</h1>
-          {DeleteTasks()}
       </div>
 
     </div>
