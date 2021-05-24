@@ -46,7 +46,10 @@ results = {}
 if exists(RES):
     with open(RES) as fh:
         try:
+            print(fh)
             results = json.load(fh)
+        except:
+            print("Load results fail")
 
 logging.debug("Saving to database")
 # Save results in database

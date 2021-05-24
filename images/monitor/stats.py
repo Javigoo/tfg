@@ -99,8 +99,7 @@ def get_usage(part):
         "time": time,
         "cpu": cpu_percent,
         "memory": mem_percent,
-        "network": network_percent,
-        "debug": "(rx,tx) network_percent: "+str(network_percent_rx)+", "+str(network_percent_tx)+" - "+str(rx)+", "+str(tx)
+        "network": network_percent
     }
 
 def get_machine_usage(hostname):
